@@ -1,0 +1,7 @@
+cmake-build-debug/
+cmake-build-release/
+Resources/*.wav
+Resources/*.mp3
+Resources/*.ogg
+Resources/*.flac
+.idea
