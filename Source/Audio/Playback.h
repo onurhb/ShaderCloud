@@ -21,14 +21,14 @@ class Playback {
 
     // - Data related to audio
     struct AUDIODATA {
-        unsigned int sampleRate     = 1;
-        unsigned int channels       = 1;
-        float playbackTime          = 0.0f;
-        unsigned int totalSamples   = 0;
-        float *samples              = nullptr;           // - Samples
-        int currentPosition         = 0;                 // - Pointer to position in frequencyBins
-        float volume                = 1.0f;
-        float temp = 0;
+        unsigned int sampleRate         = 1;
+        unsigned int channels           = 1;
+        float playbackTime              = 0.0f;
+        unsigned int totalSamples       = 0;
+        float *samples                  = nullptr;           // - Samples
+        float *samplesPtr               = nullptr;
+        unsigned int playedSamples    = 0;                 // - Pointer to position in frequencyBins
+        float volume                    = 1.0f;
     } audioData;
 
     // - Status
@@ -50,7 +50,7 @@ public:
     bool playStream();
     bool pauseStream();
     void resetStream();
-    void seekStream(int position);
+    void seekStream(unsigned int position);
     void seekStreamSeconds(float seconds);
     bool destroyStream();
 
@@ -64,16 +64,15 @@ public:
     float getPlaybackTime() const;
     float getPlayedTime() const;
     PLAYBACK_STATUS getStatus() const;
-
+    std::complex<float>* getSpectrum();
     // ------------------------------- Setters
     void setSampleRate(unsigned int sampleRate);
     void setTotalSamples(unsigned int totalSamples);
-    void setPlaybackTime(unsigned int playbackTime);
+    void setPlaybackTime(float playbackTime);
     void setChannels(unsigned int channels);
     void setSamples(float *samples, unsigned int totalSamples);
     void setSamples(std::vector<float> samples);
     void setVolume(float volume);
-    std::complex<float>* getSpectrum();
 
 
 

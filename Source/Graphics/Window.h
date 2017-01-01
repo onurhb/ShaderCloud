@@ -1,19 +1,19 @@
 #ifndef PROJECT_WINDOW_H
 #define PROJECT_WINDOW_H
 
+// ------------------- MACROS
+#define MAX_KEYS 1024
 // ------------------- INCLUDES
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <string>
 #include "../config.h"
-// --------------- Constants
-#define MAX_KEYS 1024
+
 
 
 class Window {
 
 private:
-    std::string iconPath;
     std::string windowTitle;
     GLFWwindow *windowPointer;
 
@@ -24,7 +24,7 @@ private:
 
     double xoffset, yoffset;    // - Scroll
 public:
-    Window(std::string title, int height, int width, std::string iconPath = "");
+    Window(std::string title, int height, int width);
     ~Window();
     // - Initialize window
     bool initialize();

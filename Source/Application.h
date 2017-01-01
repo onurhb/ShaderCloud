@@ -9,7 +9,7 @@
 #include "Graphics/UserInterface.h"
 #include "Audio/Playback.h"
 #include "Audio/AudioFile.h"
-#include "Utils/Threading.h"
+#include "Utils/Thread.h"
 #include "Graphics/ShaderVisualizer.h"
 #include "config.h"
 #include "Utils/FileDialog.h"
@@ -29,16 +29,14 @@ class Application {
     HTTP http;
 
     // - Threads
-    Threading audioThread;
-    Threading updateThread;
+    Thread audioThread;
+    Thread updateThread;
 
-    // - Settings
-    bool openFileDialog = false;
 
 public:
     Application();
     ~Application();
-    bool loop();
+    void loop();
 
 private:
     void render();

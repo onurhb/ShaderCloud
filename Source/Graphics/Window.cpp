@@ -1,16 +1,13 @@
-// ------------------- MACROS
-#define STB_IMAGE_IMPLEMENTATION
+
 // ------------------- INCLUDES
 #include <iostream>
 #include "Window.h"
-#include "stb_image.h"
 
 
-Window::Window(std::string title, int width, int height, std::string iconPath) {
+Window::Window(std::string title, int width, int height) {
     this->windowTitle = title;
     this->windowWidth = width;
     this->windowHeight = height;
-    this->iconPath = iconPath;
     // - Initialize buffers
     for (int i = 0; i < MAX_KEYS; ++i) keys[i] = false;
 
@@ -88,14 +85,6 @@ bool Window::initialize() {
         std::cerr << "Failed to create a window with GLFW" << std::endl;
         glfwTerminate();
         return false;
-    }
-
-    // - Set Icon TODO
-    if(!this->iconPath.empty()) {
-        GLFWimage image;
-        image.height = 256;image.width = 256;
-        image.pixels = stbi_load(iconPath.c_str(), &image.width, &image.height, NULL, STBI_rgb_alpha);
-        glfwSetWindowIcon(windowPointer, 1, &image);
     }
 
     // - Use window as current context

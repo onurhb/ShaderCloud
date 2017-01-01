@@ -1,64 +1,35 @@
 
-
-#ifndef PROJECT_INTERFACE_H
-#define PROJECT_INTERFACE_H
-
-// ------------------ INCLUDES
-#include <array>
-#include <imgui.h>
+#ifndef PROJECT_USERINTERFACE_H
+#define PROJECT_USERINTERFACE_H
+// -------------- INCLUDES
+#include "../config.h"
+#include <nanovg.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "imgui_binding.h"
-#include "../Audio/Playback.h"
+#include <imgui.h>
+#include <imgui_binding.h>
 
-
-// - Notification - Used to show a notification
-struct NOTIFICATION_STATUS{
-    std::string message;
-    float time = 0.0f;
-};
-
-// - Options - Used to tell if user has requested local or external audio file
-enum INPUT_OPTIONS {LOCAL_INPUT, SOUNDCLOUD_INPUT, NO_INPUT};
 
 class UserInterface {
 
-    // - ImGui i/o
+    // - Interface
+    NVGcontext* ctx = nullptr;
+
+    // - Window
+    GLFWwindow* window;
+
+    // - ImGui
     ImGuiIO& io;
 
-    // - Things to display
-    bool displayPlayback = true;
-    bool displaySoundInput = false;
-
-    // - Last location
-    std::array<char, 1024> soundTrackUrl;
-    std::string input;
-
-    // - Notification
-    NOTIFICATION_STATUS notification;
-
+private:
+    void renderLeftPanel();
+    void renderPanelContent();
 
 public:
-    UserInterface();
+    UserInterface(GLFWwindow* window);
     ~UserInterface();
-    // - Should be called after creating the window
-    void initialize(GLFWwindow *windowPointer);
-    // - Should be called before rendering the window
-    void preRender();
-    // - Should be called after rendering the window
-    void preUpdate();
-
-    // ------------------------------------ COMPONENTS
-    void renderPlayback(Playback &playback, bool& openFile);
-    INPUT_OPTIONS renderFileModal(bool& openFileModal);
-    void renderNotification();
-
-    // ------------------------------------ GETTERS
-    std::string getInput() const;
-    // ------------------------------------ SETTERS
-    void setNotification(std::string status, float closeTime = -1.0f);
-
+    void render(double timestamp);
 };
 
 
-#endif //PROJECT_INTERFACE_H
+#endif //PROJECT_USERINTERFACE_H

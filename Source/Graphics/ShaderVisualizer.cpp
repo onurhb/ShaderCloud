@@ -1,5 +1,4 @@
 // -------------- INCLUDES
-#include <imgui.h>
 #include "ShaderVisualizer.h"
 
 ShaderVisualizer::ShaderVisualizer()
@@ -29,7 +28,7 @@ ShaderVisualizer::~ShaderVisualizer() {
  */
 void ShaderVisualizer::initialize() {
     // - Initialize shader
-    shader->loadFromFile("", "shader.frag");
+    shader->loadFromFile("", "userShader.frag");
     shader->bindShader();
     shader->setUniform2f("iResolution", glm::vec2(WINDOW_WIDTH, WINDOW_HEIGHT));
 
@@ -94,16 +93,9 @@ void ShaderVisualizer::setSpectrum(std::complex<float> *spectrum) {
     for (int i = 0; i < WIDTH; ++i) {
         float val = std::abs(spectrum[i]) / FFT_BUFFER_SIZE * 2.0f * 255.0f;
         val = todB(val, sensevity, scale);
-        data[i] = (GLubyte) interpolate(lastValues[i], val, smooth);
+        val = interpolate(lastValues[i], val, smooth);
+        data[i] = (GLubyte) val;
         lastValues[i] = val;
     }
 }
 
-void ShaderVisualizer::renderWidget() {
-    if (ImGui::Begin("Shadervisualizer")) {
-        ImGui::SliderFloat("Sensevity", &sensevity, 0.01, 1.0);
-        ImGui::SliderFloat("Scale", &scale, 0.01, 100.0);
-        ImGui::SliderFloat("Smooth", &smooth, 0.1, 1.0);
-    }
-    ImGui::End();
-}

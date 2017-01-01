@@ -5,7 +5,7 @@
 /**
  * Initialize playback
  */
-Playback::Playback(){
+Playback::Playback() {
 }
 
 /**
@@ -28,34 +28,24 @@ Playback::~Playback() {
 int callBack(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime,
              RtAudioStreamStatus status, void *userData) {
 
-    float *out = static_cast<float *>(outputBuffer);
+    auto *out = static_cast<float *>(outputBuffer);
     auto *data = static_cast<Playback::AUDIODATA *>(userData);
-    unsigned int offset = nBufferFrames * data->currentPosition;
 
-    int availableFrames = data->totalSamples / data->channels - (offset + nBufferFrames);
-    if (availableFrames < 0) {
-        nBufferFrames = nBufferFrames + availableFrames;
-        data->currentPosition = 0;
-    };
+    if (data->totalSamples - data->playedSamples < nBufferFrames) {
+        data->samplesPtr = &data->samples[0];
+        data->playedSamples = 0;
+    }
 
     // - Feed with data
-    for (int i = offset; i < offset + nBufferFrames; i++) {
+    for (int i = 0; i < nBufferFrames; i++) {
         // - For each channel
         for (int c = 0; c < data->channels; c++) {
-            *out++ = data->samples[i * data->channels + c] * data->volume;
+            *out++ = *data->samplesPtr++ * data->volume;
         }
     }
 
-    data->currentPosition++;
+    data->playedSamples += nBufferFrames;
     return false;
-}
-
-/**
- * Returns the installed version of RtAudio
- * @return : const char* version
- */
-std::string Playback::getVersion() const {
-    return rtAudio.getVersion();
 }
 
 /**
@@ -96,6 +86,25 @@ bool Playback::openStream(unsigned int sampleRate, unsigned int channels) {
     }
 
     return true;
+}
+
+/**
+ * @brief Analyzes currently playing window and returns the spectrum using FFT
+ * @return
+ */
+std::complex<float> *Playback::getSpectrum() {
+    if (status != PLAYBACK_PLAYING) return NULL;
+
+    int channels = audioData.channels;
+    int totalSamples = AUDIO_BUFFER_FRAME_SIZE;
+
+    int k = 0;
+    for (int i = 0; i < totalSamples; i += channels) {
+        // - Fill spectrum buffers
+        spectrum[k++] = audioData.samplesPtr[i] * 0.5f * (1.0f - cos(float(2.0f * PI * i / FFT_BUFFER_SIZE)));
+
+    }
+    return fft.forwardFFT(spectrum);
 }
 
 /**
@@ -154,7 +163,8 @@ bool Playback::destroyStream() {
 
 void Playback::resetStream() {
     // - Reset position
-    this->audioData.currentPosition = 0;
+    this->audioData.playedSamples = 0;
+    audioData.samplesPtr = &audioData.samples[0];
 }
 
 /**
@@ -162,10 +172,10 @@ void Playback::resetStream() {
  * If the pointer is out of index, then it won't hurt the stream.
  * @param position
  */
-void Playback::seekStream(int position) {
+void Playback::seekStream(unsigned int position) {
     if (position < 0) return;
     if (position * AUDIO_BUFFER_FRAME_SIZE > audioData.totalSamples) return;
-    audioData.currentPosition = position;
+    audioData.playedSamples = position;
 }
 
 /**
@@ -175,7 +185,8 @@ void Playback::seekStream(int position) {
 void Playback::seekStreamSeconds(float seconds) {
     if (seconds < 0) return;
     if (seconds > audioData.playbackTime) return;
-    audioData.currentPosition = int(seconds * getSampleRate() / AUDIO_BUFFER_FRAME_SIZE);
+    audioData.playedSamples = (unsigned int) seconds * audioData.sampleRate * audioData.channels;
+    audioData.samplesPtr = &audioData.samples[audioData.playedSamples];
 }
 
 /**
@@ -203,29 +214,10 @@ void Playback::setSamples(std::vector<float> samples) {
 }
 
 
-/**
- * @brief Analyzes currently playing window and returns the spectrum using FFT
- * @return
- */
-std::complex<float>* Playback::getSpectrum() {
-    if (status != PLAYBACK_PLAYING) return NULL;
-        // - If this is last frame do not execute FFT
-    else if ((audioData.currentPosition * (AUDIO_BUFFER_FRAME_SIZE + 1)) > audioData.totalSamples) return NULL;
-    float window;
-    int offset = audioData.currentPosition * AUDIO_BUFFER_FRAME_SIZE;
-
-    for (int i = 0; i < FFT_BUFFER_SIZE; ++i) {
-        window = 0.5f * (1.0f - cos(float(2.0f * PI * i / FFT_BUFFER_SIZE)));
-        spectrum[i] = audioData.samples[offset + audioData.channels * i] * window;
-    }
-
-    return fft.forwardFFT(spectrum);
-}
-
-
 float Playback::getPlayedTime() const {
-    return getPosition() * AUDIO_BUFFER_FRAME_SIZE / getSampleRate();
+    return (this->audioData.playedSamples / this->audioData.channels) / this->audioData.sampleRate;
 }
+
 
 void Playback::setSampleRate(unsigned int sampleRate) {
     this->audioData.sampleRate = sampleRate;
@@ -235,7 +227,7 @@ void Playback::setTotalSamples(unsigned int totalSamples) {
     this->audioData.totalSamples = totalSamples;
 }
 
-void Playback::setPlaybackTime(unsigned int playbackTime) {
+void Playback::setPlaybackTime(float playbackTime) {
     this->audioData.playbackTime = playbackTime;
 }
 
@@ -252,7 +244,7 @@ float Playback::getVolume() const {
 }
 
 int Playback::getPosition() const {
-    return this->audioData.currentPosition;
+    return this->audioData.playedSamples;
 }
 
 int Playback::getChannels() const {
@@ -273,6 +265,14 @@ int Playback::getSampleRate() const {
 
 PLAYBACK_STATUS Playback::getStatus() const {
     return this->status;
+}
+
+/**
+ * Returns the installed version of RtAudio
+ * @return : const char* version
+ */
+std::string Playback::getVersion() const {
+    return rtAudio.getVersion();
 }
 
 

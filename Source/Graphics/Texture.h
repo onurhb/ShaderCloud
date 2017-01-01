@@ -15,7 +15,7 @@ class Texture {
     GLenum format, wrap, filter;
 
 public:
-    inline Texture(int width, int height, GLenum wrap = GL_REPEAT, GLenum filter = GL_LINEAR);
+    inline Texture(int width, int height, GLenum wrap = GL_CLAMP_TO_EDGE, GLenum filter = GL_LINEAR);
     inline ~Texture();
 
     inline void bindTexture() const;
