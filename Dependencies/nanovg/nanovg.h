@@ -531,10 +531,10 @@ void nvgStroke(NVGcontext* ctx);
 // same way regardless of scaling. I.e. following works regardless of scaling:
 //
 //		const char* txt = "Text me up.";
-//		nvgTextBounds(ctx, x,y, txt, NULL, bounds);
-//		nvgBeginPath(ctx);
-//		nvgRoundedRect(ctx, bounds[0],bounds[1], bounds[2]-bounds[0], bounds[3]-bounds[1]);
-//		nvgFill(ctx);
+//		nvgTextBounds(vg, x,y, txt, NULL, bounds);
+//		nvgBeginPath(vg);
+//		nvgRoundedRect(vg, bounds[0],bounds[1], bounds[2]-bounds[0], bounds[3]-bounds[1]);
+//		nvgFill(vg);
 //
 // Note: currently only solid color fill is supported for text.
 

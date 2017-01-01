@@ -41,8 +41,8 @@ include_directories(
         ${DEPENDENCIES_LOCATION}/glfw/include
         ${DEPENDENCIES_LOCATION}/glad/include
         ${DEPENDENCIES_LOCATION}/kissfft
-        ${DEPENDENCIES_LOCATION}/glm/glm
         ${DEPENDENCIES_LOCATION}/nanovg
+        ${DEPENDENCIES_LOCATION}/glm/glm
         ${DEPENDENCIES_LOCATION}/imgui
         ${DEPENDENCIES_LOCATION}/stb
         )
@@ -74,7 +74,7 @@ set(SOURCE_FILES
 
 #-------------------------------------------------------------------------------------
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${IMGUI_SOURCE_FILES} ${NANOVG_SOURCE_FILES} ${GLAD_SOURCE_FILES}
-        ${KISSFFT_SOURCE_FILES} ${NATIVEFILEDIALOGS_SOURCE_FILES})
+               ${KISSFFT_SOURCE_FILES} ${NATIVEFILEDIALOGS_SOURCE_FILES} ${NANOVG_SOURCE_FILES})
 #-------------------------------------------------------------------------------------
 find_package(OpenGL REQUIRED)
 find_package(GLFW REQUIRED glfw3)

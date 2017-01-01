@@ -1,23 +1,16 @@
 #define NANOVG_GL3_IMPLEMENTATION
 // -------------- INCLUDES
 #include "UserInterface.h"
-#include <nanovg_gl.h>
-#include <iostream>
-
+#include "nanovg_gl.h"
 
 UserInterface::UserInterface(GLFWwindow *window)
-:io(ImGui::GetIO())
-{
+        : io(ImGui::GetIO()) {
     // - Window
     this->window = window;
 
-    // - Interface
+    // - NanoVG
     ctx = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-
-    if (!ctx) {
-        std::cout << "Could not load NanoVG" << std::endl;
-        return;
-    }
+    font = nvgCreateFont(ctx, "system", "Ubuntu-M.ttf");
 
     // - ImGui
     ImGui_ImplGlfwGL3_Init(window, true);
@@ -25,42 +18,97 @@ UserInterface::UserInterface(GLFWwindow *window)
 }
 
 UserInterface::~UserInterface() {
-    nvgDeleteGL3(ctx);
     ImGui_ImplGlfwGL3_Shutdown();
 }
 
-void UserInterface::render(double timestamp) {
+void UserInterface::preRender() {
     ImGui_ImplGlfwGL3_NewFrame();
     nvgBeginFrame(ctx, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH / WINDOW_HEIGHT);
-    {
+}
 
-        renderLeftPanel();
-        renderPanelContent();
-
-    }
+void UserInterface::postRender() {
     nvgEndFrame(ctx);
     ImGui::Render();
 }
-
 // -------------------------------------------------------------------------- COMPONENTS
 
-void UserInterface::renderLeftPanel() {
+UI_EVENTS UserInterface::renderLeftPanel() {
 
-    NVGpaint shadowPaint = nvgBoxGradient(ctx, 256, 0, 0, WINDOW_HEIGHT, 0, 10, nvgRGBA(00, 00, 00, 200),
-                                          nvgRGBA(10, 10, 10, 220));
+    UI_EVENTS events = UI_NO_EVENT;
+
+    // - Menu
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("Open ...", NULL)) {
+                displayFileModal = true;
+            }
+            ImGui::Separator();
+            ImGui::MenuItem("Save", NULL);
+            ImGui::MenuItem("Undo", NULL);
+            ImGui::MenuItem("Redo", NULL);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Settings")) {
+            if (ImGui::MenuItem("Close sidebar", NULL));
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+
+    return events;
+}
+
+UI_EVENTS UserInterface::renderFileModal() {
+    UI_EVENTS events = UI_NO_EVENT;
+    if (!displayFileModal) return events;
+
+    ImGui::OpenPopup("Open File");
+    if (ImGui::BeginPopupModal("Open File", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
+        ImGui::Text("Please select a source.\n");
+        if (ImGui::Button("Local ...", ImVec2(120, 0))) {
+            displayFileModal = false;
+            events = UI_OPEN_LOCAL_FILE;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Soundcloud ...", ImVec2(120, 0)));
+        // - Cancel
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            displayFileModal = false;
+        }
+    }
+    ImGui::EndPopup();
+    return events;
+}
+
+UI_EVENTS UserInterface::renderNotification(std::string notification) {
+    int width = 300, height = 50;
+    int posX = WINDOW_WIDTH - width - 10;
+    int posY =  WINDOW_HEIGHT - height - 10;
 
     nvgBeginPath(ctx);
-    nvgRect(ctx, 0, 0, 256, WINDOW_HEIGHT);
-    nvgFillPaint(ctx, shadowPaint);
+    nvgRoundedRect(ctx, posX, posY, width, height, 2);
+    nvgFillColor(ctx, nvgRGBA(35, 32, 40, 200));
     nvgFill(ctx);
 
+    nvgBeginPath(ctx);
+    nvgRoundedRect(ctx, posX, posY, width, height, 2);
+    nvgStrokeColor(ctx, nvgRGBA(0, 0, 0, 255));
+    nvgStrokeWidth(ctx, 3);
+    nvgStroke(ctx);
+
+    nvgFontSize(ctx, 14);
+    nvgFillColor(ctx, nvgRGBA(255,255,255, 200));
+    nvgTextAlign(ctx,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+    nvgText(ctx, posX + 50, posY + 20, notification.c_str(), NULL);
+
+    return UI_NO_EVENT;
 }
 
-void UserInterface::renderPanelContent() {
-    ImGui::Begin("Test");
-    ImGui::Text("Hello World");
-    ImGui::End();
-}
+
+
+
+
 
 
 

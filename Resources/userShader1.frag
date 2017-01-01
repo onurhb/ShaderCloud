@@ -1,62 +1,70 @@
 #version 450 core
 
-// --------------------------------- DO NOT TOUCH
+ // --------------------------------- DO NOT TOUCH
 
-uniform vec2 iResolution;
-uniform sampler2D iChannel0;
-uniform float iGlobalTime;
+ uniform vec2 iResolution;
+ uniform vec2 iMouse;
+ uniform sampler2D iChannel0;
+ uniform float iGlobalTime;
 
-// - Other
-in vec4 out_color;
-in vec4 out_position;
+ // - Other
+ in vec4 out_color;
+ in vec4 out_position;
 
-// --------------------------------- USER DEFINED SHADER
-const float dots = 40.; //number of lights
-const float radius = .25; //radius of light ring
-const float brightness = 0.02;
+ // --------------------------------- USER DEFINED SHADER
+ const float tau = 6.28318530717958647692;
 
-//convert HSV to RGB
-vec3 hsv2rgb(vec3 c){
-    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-}
+ void mainImage( out vec4 fragColor, in vec2 fragCoord )
+ {
+ 	vec2 uv = (fragCoord.xy - iResolution.xy*.5)/iResolution.x;
 
-void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
+ 	uv = vec2(abs(atan(uv.x,uv.y)/(.5*tau)),length(uv));
 
-	vec2 p=(fragCoord.xy-.5*iResolution.xy)/min(iResolution.x,iResolution.y);
-    vec3 c=vec3(0,0,0.1); //background color
+ 	// adjust frequency to look pretty
+ 	uv.x *= 1.0/10.0;
 
-    for(float i=0.;i<dots; i++){
+ 	float seperation = 0.06*(1.0-iMouse.x/iResolution.x);
 
-		//read frequency for this dot from audio input channel
-		//based on its index in the circle
-		float vol =  texture2D(iChannel0, vec2(i/dots, 0.0)).x;
-		float b = vol * brightness;
+ 	vec3 wave = vec3(0.0);
+ 	const int n = 120;
+ 	for ( int i=0; i < n; i++ )
+ 	{
+ 		float u = uv.x*255.0;
+ 		float f = fract(u);
+ 		f = f*f*(3.0-2.0*f);
+ 		u = floor(u);
+ 		float sound = mix( texture2D( iChannel0, vec2((u+.5)/256.0,.75) ).x, texture2D( iChannel0, vec2((u+1.5)/256.0,.75) ).x, f );
 
-		//get location of dot
-        float x = radius*cos(2.*3.14*float(i)/dots);
-        float y = radius*sin(2.*3.14*float(i)/dots);
-        vec2 o = vec2(x,y);
+ 		// choose colour from spectrum
+ 		float a = .9*float(i)*tau/float(n)-.6;
+ 		vec3 phase = smoothstep(-1.0,.5,vec3(cos(a),cos(a-tau/3.0),cos(a-tau*2.0/3.0)));
 
-		//get color of dot based on its index in the
-		//circle + time to rotate colors
-		vec3 dotCol = hsv2rgb(vec3((i + 1.0*10.)/dots,1.,1.0));
+ 		wave += phase*smoothstep(4.0/640.0, 0.0, abs(uv.y - sound*.3));
+ 		uv.x += seperation/float(n);
+ 	}
+ 	wave *= 5.0/float(n);
 
-        //get brightness of this pixel based on distance to dot
-		c += b/(length(p-o))*dotCol;
-    }
+ 	vec3 col = vec3(0);
+ 	col.z  += texture2D( iChannel0, vec2(.000,.25) ).x;
+ 	col.zy += texture2D( iChannel0, vec2(.125,.25) ).xx*vec2(1.5,.5);
+ 	col.zy += texture2D( iChannel0, vec2(.250,.25) ).xx;
+ 	col.zy += texture2D( iChannel0, vec2(.375,.25) ).xx*vec2(.5,1.5);
+ 	col.y  += texture2D( iChannel0, vec2(.500,.25) ).x;
+ 	col.yx += texture2D( iChannel0, vec2(.625,.25) ).xx*vec2(1.5,.5);
+ 	col.yx += texture2D( iChannel0, vec2(.750,.25) ).xx;
+ 	col.yx += texture2D( iChannel0, vec2(.875,.25) ).xx*vec2(.5,1.5);
+ 	col.x  += texture2D( iChannel0, vec2(1.00,.25) ).x;
+ 	col /= vec3(4.0,7.0,4.0);
 
-    //black circle overlay
-	float dist = distance(p , vec2(0));
-	c = c * smoothstep(0.26, 0.28, dist);
+ 	// vignetting
+ 	col *= smoothstep( 1.2, 0.0, uv.y );
 
-	fragColor = vec4(c,1);
-}
-// ---------------------------------
+ 	fragColor = vec4(wave+col,1);
+ }
+ // ---------------------------------
 
-void main(){
+ void main(){
 
-     mainImage(gl_FragColor, gl_FragCoord.xy);
+      mainImage(gl_FragColor, gl_FragCoord.xy);
 
-}
+ }

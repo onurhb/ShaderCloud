@@ -3,11 +3,10 @@
 #include "Application.h"
 
 
-Application::Application():
-window(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT),
-userInterface(window.getWindow()),
-updateThread(false)
-{
+Application::Application() :
+        window(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT),
+        userInterface(window.getWindow()),
+        updateThread(false) {
 
 }
 
@@ -46,9 +45,7 @@ void Application::getLocalFile() {
     if (path.empty()) {
         return audioThread.setDone();
     }
-
-    // - Notify
-
+    notification = "Loading file...";
     // - Open file
     if (audioFile.loadFile(path)) {
 
@@ -58,7 +55,10 @@ void Application::getLocalFile() {
         playback.openStream(audioFile.getSampleRate(), audioFile.getChannels());
         playback.playStream();
 
+        notification = "Playing file...";
 
+    }else{
+        notification = "Could not read file...";
     }
 
     audioThread.setDone();
@@ -69,11 +69,23 @@ void Application::getLocalFile() {
  * Handling rendering here...
  */
 void Application::render() {
+    double x, y;
+    double t = glfwGetTime();
+    window.getMousePosition(x, y);
+
     window.clear();
+    userInterface.preRender();
     {
-        shaderVisualizer.render(glfwGetTime());
-        userInterface.render(glfwGetTime());
+        userInterface.renderNotification(notification);
+        shaderVisualizer.render(t, x, y);
+        shaderVisualizer.renderWidget();
+        userInterface.renderLeftPanel();
+        UI_EVENTS event = userInterface.renderFileModal();
+        if (event == UI_OPEN_LOCAL_FILE) {
+            audioThread.startThread(Application::getLocalFile, this);
+        }
     }
+    userInterface.postRender();
     window.update();
 }
 

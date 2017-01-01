@@ -32,6 +32,9 @@ class Application {
     Thread audioThread;
     Thread updateThread;
 
+    // - Notification
+    std::string notification;
+
 
 public:
     Application();

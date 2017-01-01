@@ -11,6 +11,7 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "../config.h"
+#include "imgui.h"
 #include "../Utils/Math.h"
 
 
@@ -21,15 +22,16 @@ class ShaderVisualizer {
     float lastValues[WIDTH];
     Texture texture;
     GLuint VAO, VBO;
-    float sensevity = 0.35, smooth = 0.65, scale = 5.0;
+    float sensevity = 0.45, smooth = 0.70, scale = 20.0;
 
 public:
     ShaderVisualizer();
     ~ShaderVisualizer();
     void initialize();
-    void render(double time = 0.0);
+    void render(double& time, double& mouseX, double& mouseY);
     void setShader(const char *vpath = NULL, const char *fpath = NULL);
     void setSpectrum(std::complex<float> *spectrum);
+    void renderWidget();
 };
 
 

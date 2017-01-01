@@ -61,9 +61,10 @@ void ShaderVisualizer::initialize() {
  * Renders a big rectangle and use the shader.
  * @param time : current time. Necessary for passing iGlobalTime to shader.
  */
-void ShaderVisualizer::render(double time) {
+void ShaderVisualizer::render(double& time, double& mouseX, double& mouseY) {
     shader->bindShader();
     shader->setUniform1f("iGlobalTime", float(time));
+    shader->setUniform2f("iMouse", glm::vec2(mouseX, mouseY));
     texture.bindTexture();
     texture.loadSubData(data, WIDTH, HEIGHT);
     {
@@ -97,5 +98,14 @@ void ShaderVisualizer::setSpectrum(std::complex<float> *spectrum) {
         data[i] = (GLubyte) val;
         lastValues[i] = val;
     }
+}
+
+void ShaderVisualizer::renderWidget() {
+    if (ImGui::Begin("Shader")) {
+        ImGui::SliderFloat("Sensevity", &sensevity, 0.01, 1.0);
+        ImGui::SliderFloat("Scale", &scale, 0.01, 100.0);
+        ImGui::SliderFloat("Smooth", &smooth, 0.1, 1.0);
+    }
+    ImGui::End();
 }
 
