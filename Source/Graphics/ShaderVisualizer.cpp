@@ -28,9 +28,6 @@ ShaderVisualizer::~ShaderVisualizer() {
  */
 void ShaderVisualizer::initialize() {
     // - Initialize shader
-    shader->loadFromFile("", "userShader1.frag");
-    shader->bindShader();
-    shader->setUniform2f("iResolution", glm::vec2(WINDOW_WIDTH, WINDOW_HEIGHT));
 
     // - Initialize a big rectangle to render on
     GLfloat vertices[] = {
@@ -62,6 +59,9 @@ void ShaderVisualizer::initialize() {
  * @param time : current time. Necessary for passing iGlobalTime to shader.
  */
 void ShaderVisualizer::render(double& time, double& mouseX, double& mouseY) {
+
+    if(shouldUpdate) updateShader();
+
     shader->bindShader();
     shader->setUniform1f("iGlobalTime", float(time));
     shader->setUniform2f("iMouse", glm::vec2(mouseX, mouseY));
@@ -80,14 +80,22 @@ void ShaderVisualizer::render(double& time, double& mouseX, double& mouseY) {
  * @param fpath : path to fragment
  * @param vpath : path to vertex
  */
-void ShaderVisualizer::setShader(const char *vpath, const char *fpath) {
+void ShaderVisualizer::updateShader() {
     // - Handle shader if already exists
-    if (this->shader == nullptr) this->shader = new Shader();
-    else delete this->shader;
-    // - If no vertex shader is provided, only set the fragment shader
+    delete this->shader;
+    this->shader = new Shader();
     this->shader->loadFromFile(vpath, fpath);
+    shader->bindShader();
+    shader->setUniform2f("iResolution", glm::vec2(WINDOW_WIDTH, WINDOW_HEIGHT));
+    shouldUpdate = false;
 }
 
+
+void ShaderVisualizer::setShader(std::string vpath, std::string fpath) {
+    this->vpath = vpath;
+    this->fpath = fpath;
+    shouldUpdate = true;
+}
 
 void ShaderVisualizer::setSpectrum(std::complex<float> *spectrum) {
     if (!spectrum) return;

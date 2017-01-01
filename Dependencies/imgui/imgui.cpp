@@ -726,7 +726,7 @@ static ImFontAtlas      GImDefaultFontAtlas;
 
 // Default context storage + current context pointer.
 // Implicitely used by all ImGui functions. Always assumed to be != NULL. Change to a different context by calling ImGui::SetCurrentContext()
-// ImGui is currently not thread-safe because of this variable. If you want audioThread-safety to allow N threads to access N different contexts, you might work around it by:
+// ImGui is currently not thread-safe because of this variable. If you want fileThread-safety to allow N threads to access N different contexts, you might work around it by:
 // - Having multiple instances of the ImGui code compiled inside different namespace (easiest/safest, if you have a finite number of contexts)
 // - or: Changing this variable to be TLS. You may #define GImGui in imconfig.h for further custom hackery. Future development aim to make this context pointer explicit to all calls. Also read https://github.com/ocornut/imgui/issues/586
 #ifndef GImGui
@@ -767,7 +767,7 @@ ImGuiStyle::ImGuiStyle()
     Colors[ImGuiCol_Text]                  = ImVec4(0.95f, 0.95f, 0.95f, 1.00f);
     Colors[ImGuiCol_TextDisabled]          = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
     Colors[ImGuiCol_TextSelectedBg]        = ImVec4(1.00f, 1.00f, 0.00f, 1.00f);
-    Colors[ImGuiCol_WindowBg]              = ImVec4(0.17f, 0.17f, 0.17f, 0.85f);
+    Colors[ImGuiCol_WindowBg]              = ImVec4(0.10f, 0.10f, 0.10f, 0.90f);
     Colors[ImGuiCol_ChildWindowBg]         = ImVec4(0.17f, 0.17f, 0.17f, 0.90f);
     Colors[ImGuiCol_PopupBg]               = ImVec4(0.17f, 0.17f, 0.17f, 0.90f);
     Colors[ImGuiCol_Border]                = ImVec4(0.00f, 0.00f, 0.00f, 0.40f);
@@ -2051,7 +2051,7 @@ ImGuiContext* ImGui::GetCurrentContext()
 void ImGui::SetCurrentContext(ImGuiContext* ctx)
 {
 #ifdef IMGUI_SET_CURRENT_CONTEXT_FUNC
-    IMGUI_SET_CURRENT_CONTEXT_FUNC(ctx); // For custom audioThread-based hackery you may want to have control over this.
+    IMGUI_SET_CURRENT_CONTEXT_FUNC(ctx); // For custom fileThread-based hackery you may want to have control over this.
 #else
     GImGui = ctx;
 #endif

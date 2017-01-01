@@ -16,7 +16,7 @@ Application::~Application() {}
  * @brief Requests external file using HTTP
  * @param URL : link to file
  */
-void Application::getExternalFile(std::string URL) {
+void Application::getExternalTrack(std::string URL) {
     // - Download the actual mp3
     notification.setNotification("Downloading track...", 12.0);
 
@@ -40,18 +40,18 @@ void Application::getExternalFile(std::string URL) {
         notification.setNotification("Could not download the track...", 12.0);
     }
 
-    audioThread.setDone();
+    fileThread.setDone();
 }
 
 /**
  * Opends an audio file. Threaded.
  * @param path : path to file
  */
-void Application::getLocalFile() {
+void Application::getLocalTrack() {
 
     std::string path = fileDialog.askPath("flac,wav,ogg,mp3");
     if (path.empty()) {
-        return audioThread.setDone();
+        return fileThread.setDone();
     }
     notification.setNotification("Reading file...", 3.0);
 
@@ -70,7 +70,7 @@ void Application::getLocalFile() {
         notification.setNotification("Could not read file...", 3.0);
     }
 
-    audioThread.setDone();
+    fileThread.setDone();
 }
 
 
@@ -91,9 +91,11 @@ void Application::render() {
         userInterface.renderLeftPanel();
         UI_EVENTS event = userInterface.renderFileModal();
         if (event == UI_OPEN_LOCAL_FILE) {
-            audioThread.startThread(Application::getLocalFile, this);
+            fileThread.startThread(Application::getLocalTrack, this);
         } else if (event == UI_OPEN_EXTERNAL_FILE) {
-            audioThread.startThread(Application::getExternalFile, this, userInterface.getInput());
+            fileThread.startThread(Application::getExternalTrack, this, userInterface.getInput());
+        } else if (event == UI_OPEN_SHADER) {
+            fileThread.startThread(Application::getLocalShader, this);
         }
     }
     userInterface.postRender();
@@ -129,6 +131,15 @@ void Application::loop() {
     }
     closed = true;
     updateThread.join();
+}
+
+void Application::getLocalShader() {
+    std::string path = fileDialog.askPath("frag,fragment,frg");
+    if (path.empty()) {
+        return fileThread.setDone();
+    }
+    shaderVisualizer.setShader("", path);
+    fileThread.setDone();
 }
 
 

@@ -31,7 +31,7 @@ class Application {
     HTTP http;
 
     // - Threads
-    Thread audioThread;
+    Thread fileThread;
     Thread updateThread;
 
 
@@ -44,8 +44,9 @@ public:
 private:
     void render();
     void update(bool &closed);
-    void getLocalFile();
-    void getExternalFile(std::string URL);
+    void getLocalTrack();
+    void getLocalShader();
+    void getExternalTrack(std::string URL);
 };
 
 

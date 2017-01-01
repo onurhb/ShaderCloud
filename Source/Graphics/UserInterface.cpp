@@ -68,12 +68,17 @@ UI_EVENTS UserInterface::renderFileModal() {
     ImGui::OpenPopup("Open File");
     if (ImGui::BeginPopupModal("Open File", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
         ImGui::Text("Please select a source.\n");
-        if (ImGui::Button("Local ...", ImVec2(120, 0))) {
+        if (ImGui::Button("Local Track...", ImVec2(120, 0))) {
             displayFileModal = false;
             events = UI_OPEN_LOCAL_FILE;
         }
         ImGui::SameLine();
-        if (ImGui::Button("Soundcloud ...", ImVec2(120, 0))){
+        if (ImGui::Button("Local Shader...", ImVec2(120, 0))) {
+            displayFileModal = false;
+            events = UI_OPEN_SHADER;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Soundcloud Track...", ImVec2(120, 0))){
             displaySoundCloudModal ^= 1;
         }
         // - Cancel
