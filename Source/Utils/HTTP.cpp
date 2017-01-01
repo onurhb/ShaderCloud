@@ -83,6 +83,7 @@ std::string HTTP::getSoundCloudStream(std::string URL) {
     if (get(res) == HTTP_REJECTED) return "";
     std::string resolve = getResponse();
     unsigned int trackS = resolve.find("api.soundcloud.com/tracks/"), trackE = resolve.find(".json");
+    if(trackS == std::string::npos) return "";
     res = "http://" + resolve.substr(trackS, trackE - trackS) + "/stream?client_id=" + SOUNDCLOUD_API_KEY;
     // - Find the Stream URL
     if (get(res) == HTTP_REJECTED) return "";

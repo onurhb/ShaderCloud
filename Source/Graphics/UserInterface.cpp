@@ -49,7 +49,10 @@ UI_EVENTS UserInterface::renderLeftPanel() {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Settings")) {
-            if (ImGui::MenuItem("Close sidebar", NULL));
+            if (ImGui::MenuItem("Hide widgets", NULL));
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Help")) {
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
@@ -70,18 +73,36 @@ UI_EVENTS UserInterface::renderFileModal() {
             events = UI_OPEN_LOCAL_FILE;
         }
         ImGui::SameLine();
-        if (ImGui::Button("Soundcloud ...", ImVec2(120, 0)));
+        if (ImGui::Button("Soundcloud ...", ImVec2(120, 0))){
+            displaySoundCloudModal ^= 1;
+        }
         // - Cancel
         ImGui::SameLine();
         if (ImGui::Button("Cancel", ImVec2(120, 0))) {
             displayFileModal = false;
         }
+
+        if (displaySoundCloudModal){
+            ImGui::Separator();
+            ImGui::Text("Track Link:");
+            ImGui::PushItemWidth(-1);
+            ImGui::InputText("##", soundCloudInput.data(), soundCloudInput.size());
+            if(ImGui::Button("Download", ImVec2(160, 0))){
+                displaySoundCloudModal = displayFileModal = false;
+                events = UI_OPEN_EXTERNAL_FILE;
+            }
+        }
+
+        ImGui::EndPopup();
     }
-    ImGui::EndPopup();
+
     return events;
 }
 
 UI_EVENTS UserInterface::renderNotification(std::string notification) {
+
+    if(notification.empty()) return UI_NO_EVENT;
+
     int width = 300, height = 50;
     int posX = WINDOW_WIDTH - width - 10;
     int posY =  WINDOW_HEIGHT - height - 10;
@@ -99,10 +120,13 @@ UI_EVENTS UserInterface::renderNotification(std::string notification) {
 
     nvgFontSize(ctx, 14);
     nvgFillColor(ctx, nvgRGBA(255,255,255, 200));
-    nvgTextAlign(ctx,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
-    nvgText(ctx, posX + 50, posY + 20, notification.c_str(), NULL);
+    nvgText(ctx, posX + 10, posY + 20, notification.c_str(), NULL);
 
     return UI_NO_EVENT;
+}
+
+std::string UserInterface::getInput() {
+    return soundCloudInput.data();
 }
 
 

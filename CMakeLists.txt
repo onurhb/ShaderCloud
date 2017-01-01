@@ -70,7 +70,7 @@ set(SOURCE_FILES
         Source/Audio/AudioFile.cpp Source/Audio/AudioFile.h
         Source/Graphics/UserInterface.cpp Source/Graphics/UserInterface.h
         Source/Graphics/ShaderVisualizer.cpp Source/Graphics/ShaderVisualizer.h
-        )
+        Source/Utils/NotificationHandler.cpp Source/Utils/NotificationHandler.h)
 
 #-------------------------------------------------------------------------------------
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${IMGUI_SOURCE_FILES} ${NANOVG_SOURCE_FILES} ${GLAD_SOURCE_FILES}

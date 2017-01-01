@@ -28,7 +28,7 @@ ShaderVisualizer::~ShaderVisualizer() {
  */
 void ShaderVisualizer::initialize() {
     // - Initialize shader
-    shader->loadFromFile("", "userShader.frag");
+    shader->loadFromFile("", "userShader1.frag");
     shader->bindShader();
     shader->setUniform2f("iResolution", glm::vec2(WINDOW_WIDTH, WINDOW_HEIGHT));
 

@@ -14,6 +14,7 @@
 #include "config.h"
 #include "Utils/FileDialog.h"
 #include "Utils/HTTP.h"
+#include "Utils/NotificationHandler.h"
 // ---------------
 
 class Application {
@@ -22,6 +23,7 @@ class Application {
 
     // - Components
     ShaderVisualizer shaderVisualizer;
+    NotificationHandler notification;
     UserInterface userInterface;
     FileDialog fileDialog;
     AudioFile audioFile;
@@ -32,8 +34,6 @@ class Application {
     Thread audioThread;
     Thread updateThread;
 
-    // - Notification
-    std::string notification;
 
 
 public:

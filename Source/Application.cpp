@@ -18,18 +18,26 @@ Application::~Application() {}
  */
 void Application::getExternalFile(std::string URL) {
     // - Download the actual mp3
+    notification.setNotification("Downloading track...", 12.0);
+
     std::string stream = http.getSoundCloudStream(URL);
 
     if (!stream.empty()) {
+        notification.setNotification("Decoding track...", 6.0);
+
         if (audioFile.decodeMPEG(stream)) {
             // - File playback
             playback.pauseStream(); // - Pause stream temporary
             playback.setSamples(audioFile.getSamples());
             playback.openStream(audioFile.getSampleRate(), audioFile.getChannels());
             playback.playStream();
+            notification.setNotification("Playing track...", 12.0);
 
+        }else{
+            notification.setNotification("Could not decode the track...", 12.0);
         }
-
+    }else{
+        notification.setNotification("Could not download the track...", 12.0);
     }
 
     audioThread.setDone();
@@ -45,7 +53,8 @@ void Application::getLocalFile() {
     if (path.empty()) {
         return audioThread.setDone();
     }
-    notification = "Loading file...";
+    notification.setNotification("Reading file...", 3.0);
+
     // - Open file
     if (audioFile.loadFile(path)) {
 
@@ -55,10 +64,10 @@ void Application::getLocalFile() {
         playback.openStream(audioFile.getSampleRate(), audioFile.getChannels());
         playback.playStream();
 
-        notification = "Playing file...";
+        notification.setNotification("Playing ...", 3.0);
 
     }else{
-        notification = "Could not read file...";
+        notification.setNotification("Could not read file...", 3.0);
     }
 
     audioThread.setDone();
@@ -76,13 +85,15 @@ void Application::render() {
     window.clear();
     userInterface.preRender();
     {
-        userInterface.renderNotification(notification);
+        userInterface.renderNotification(notification.getNotification());
         shaderVisualizer.render(t, x, y);
         shaderVisualizer.renderWidget();
         userInterface.renderLeftPanel();
         UI_EVENTS event = userInterface.renderFileModal();
         if (event == UI_OPEN_LOCAL_FILE) {
             audioThread.startThread(Application::getLocalFile, this);
+        } else if (event == UI_OPEN_EXTERNAL_FILE) {
+            audioThread.startThread(Application::getExternalFile, this, userInterface.getInput());
         }
     }
     userInterface.postRender();
