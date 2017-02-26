@@ -12,55 +12,65 @@
  in vec4 out_position;
 
  // --------------------------------- USER DEFINED SHADER
- const float tau = 6.28318530717958647692;
+const int iters = 150;
 
- void mainImage( out vec4 fragColor, in vec2 fragCoord )
- {
- 	vec2 uv = (fragCoord.xy - iResolution.xy*.5)/iResolution.x;
+int fractal(vec2 p, vec2 point) {
+	vec2 so = (-1.0 + 2.0 * point) * 0.4;
+	vec2 seed = vec2(0.098386255 + so.x, 0.6387662 + so.y);
 
- 	uv = vec2(abs(atan(uv.x,uv.y)/(.5*tau)),length(uv));
+	for (int i = 0; i < iters; i++) {
 
- 	// adjust frequency to look pretty
- 	uv.x *= 1.0/10.0;
+		if (length(p) > 2.0) {
+			return i;
+		}
+		vec2 r = p;
+		p = vec2(p.x * p.x - p.y * p.y, 2.0* p.x * p.y);
+		p = vec2(p.x * r.x - p.y * r.y + seed.x, r.x * p.y + p.x * r.y + seed.y);
+	}
 
- 	float seperation = 0.06*(1.0-iMouse.x/iResolution.x);
+	return 0;
+}
 
- 	vec3 wave = vec3(0.0);
- 	const int n = 120;
- 	for ( int i=0; i < n; i++ )
- 	{
- 		float u = uv.x*255.0;
- 		float f = fract(u);
- 		f = f*f*(3.0-2.0*f);
- 		u = floor(u);
- 		float sound = mix( texture2D( iChannel0, vec2((u+.5)/256.0,.75) ).x, texture2D( iChannel0, vec2((u+1.5)/256.0,.75) ).x, f );
+vec3 color(int i) {
+	float f = float(i)/float(iters) * 2.0;
+	f=f*f*2.;
+	return vec3((sin(f*2.0)), (sin(f*3.0)), abs(sin(f*7.0)));
+}
 
- 		// choose colour from spectrum
- 		float a = .9*float(i)*tau/float(n)-.6;
- 		vec3 phase = smoothstep(-1.0,.5,vec3(cos(a),cos(a-tau/3.0),cos(a-tau*2.0/3.0)));
 
- 		wave += phase*smoothstep(4.0/640.0, 0.0, abs(uv.y - sound*.3));
- 		uv.x += seperation/float(n);
- 	}
- 	wave *= 5.0/float(n);
+float sampleMusicA() {
+	return 0.5 * (
+		texture( iChannel0, vec2( 0.15, 0.25 ) ).x +
+		texture( iChannel0, vec2( 0.30, 0.25 ) ).x);
+}
 
- 	vec3 col = vec3(0);
- 	col.z  += texture2D( iChannel0, vec2(.000,.25) ).x;
- 	col.zy += texture2D( iChannel0, vec2(.125,.25) ).xx*vec2(1.5,.5);
- 	col.zy += texture2D( iChannel0, vec2(.250,.25) ).xx;
- 	col.zy += texture2D( iChannel0, vec2(.375,.25) ).xx*vec2(.5,1.5);
- 	col.y  += texture2D( iChannel0, vec2(.500,.25) ).x;
- 	col.yx += texture2D( iChannel0, vec2(.625,.25) ).xx*vec2(1.5,.5);
- 	col.yx += texture2D( iChannel0, vec2(.750,.25) ).xx;
- 	col.yx += texture2D( iChannel0, vec2(.875,.25) ).xx*vec2(.5,1.5);
- 	col.x  += texture2D( iChannel0, vec2(1.00,.25) ).x;
- 	col /= vec3(4.0,7.0,4.0);
+void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
+	vec2 uv = fragCoord.xy / iResolution.xy;
+    vec2 mouse = vec2(iMouse.x/iResolution.x,iMouse.y/iResolution.y);
 
- 	// vignetting
- 	col *= smoothstep( 1.2, 0.0, uv.y );
+    vec2 position = 3. * (-0.5 + fragCoord.xy / iResolution.xy );
+	position.x *= iResolution.x/iResolution.y;
 
- 	fragColor = vec4(wave+col,1);
- }
+    vec2 iFC = vec2(iResolution.x-fragCoord.x,iResolution.y-fragCoord.y);
+    vec2 pos2 = 2. * (-0.5 + iFC.xy / iResolution.xy);
+    pos2.x*=iResolution.x/iResolution.y;
+
+    vec4 t3 = texture(iChannel0, vec2(length(position)/2.0,0.1) );
+    float pulse = 0.5+sampleMusicA()*1.8;
+
+    vec3 invFract = color(fractal(pos2,vec2(0.55+sin(iGlobalTime/3.+0.5)/2.0,pulse*.9)));
+
+    vec3 fract4 = color(fractal(position/1.6,vec2(0.6+cos(iGlobalTime/2.+0.5)/2.0,pulse*.8)));
+
+    vec3 c = color(fractal(position,vec2(0.5+sin(iGlobalTime/3.)/2.0,pulse)));
+
+    t3=abs(vec4(0.5,0.1,0.5,1.)-t3)*2.;
+
+    vec4 fract01 =  vec4( c , 1.0 );
+    vec4 salida;
+    salida = fract01 / t3 + fract01 * t3 + vec4(invFract,0.6) + vec4(fract4,0.3);
+	fragColor = salida;
+}
  // ---------------------------------
 
  void main(){
