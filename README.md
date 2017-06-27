@@ -1,7 +1,8 @@
 # ShaderCloud
 ShaderCloud is a minimal audio visualizer inspired by shadertoy. <br/>
 The visualizer can be programmed using the OpenGL shading language. <br/>
-[![VIDEO](http://img.youtube.com/vi/gT2zvqcUlKk/0.jpg)](https://youtu.be/gT2zvqcUlKk)  <br/>
+> [![VIDEO](http://img.youtube.com/vi/gT2zvqcUlKk/0.jpg)](https://youtu.be/gT2zvqcUlKk)  <br/>
+> [Video Demo](https://youtu.be/gT2zvqcUlKk)
 
 ## Usage
 
